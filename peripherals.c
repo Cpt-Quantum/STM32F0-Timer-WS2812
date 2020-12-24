@@ -50,7 +50,7 @@ void gpio_init(GPIO_PORT_E gpio_port, const GPIO_PIN_E io_pin, GPIO_MODER_E gpio
 		GPIOD->MODER |= (gpio_mode << (io_pin * 2));
 		if (gpio_mode == GPIO_ALT_MODE)
 		{
-			/* https://github.com/Cpt-Quantum/STM32F030-Bare-Metal/blob/master/ST_device_headers/startup.sFirst, clear the 4 bit nibble you want to set, then or the */
+			/* First, clear the 4 bit nibble you want to set, then or the */
 			/* register with the value you want to set it to */
 			GPIOD->AFR[io_pin/8] &= ~(GPIO_AF_MAX << ((io_pin & 0x7) * 4));
 			GPIOD->AFR[io_pin/8] |=  (gpio_af     << ((io_pin & 0x7) * 4));
