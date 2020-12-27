@@ -91,7 +91,7 @@ void init_timer(TIM_TypeDef *TIMx);
 void start_timer(TIM_TypeDef *TIMx, uint16_t prescale, uint16_t count);
 
 void setup_timer_capture_compare(TIM_TypeDef *TIMx, const TIMER_CHANNEL_E channel,
-		uint16_t ARR, uint16_t CCR, uint16_t prescale);
+		uint16_t ARR, uint16_t CCR, uint16_t prescale, bool preload);
 
 void clock_setup(bool external_clk, bool use_pll, PLL_MULT_E pll_mult);
 

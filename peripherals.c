@@ -119,7 +119,7 @@ void start_timer(TIM_TypeDef *TIMx, uint16_t prescale, uint16_t count)
 }
 
 void setup_timer_capture_compare(TIM_TypeDef *TIMx, const TIMER_CHANNEL_E channel,
-		uint16_t ARR, uint16_t CCR, uint16_t prescale)
+		uint16_t ARR, uint16_t CCR, uint16_t prescale, bool preload)
 {
 	/* Set prescaler */
 	TIMx->PSC = prescale;
@@ -135,9 +135,18 @@ void setup_timer_capture_compare(TIM_TypeDef *TIMx, const TIMER_CHANNEL_E channe
 			/* CCR1. */
 			TIMx->CCMR1 &= ~(TIM_CCMR1_OC1M_Msk);
 			TIMx->CCMR1 |= (TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC1M_2);
+			/* Set the preload for the capture compare value register */
+			if (preload == true)
+			{
+				TIMx->CCMR1 |= TIM_CCMR1_OC1PE;
+			}
+			else
+			{
+				TIMx->CCMR1 &= TIM_CCMR1_OC1PE;
+			}
 			/* Disable the capture/compare 1 output for now*/
 			/* NB: Can also set the polarity in this register */
-			TIMx->CCER |= ~TIM_CCER_CC1E;
+			TIMx->CCER &= ~TIM_CCER_CC1E;
 			break;
 		case TIM_CHAN_2:
 			/* Set the first count in the capture compare register */
@@ -146,9 +155,18 @@ void setup_timer_capture_compare(TIM_TypeDef *TIMx, const TIMER_CHANNEL_E channe
 			/* CCR1. */
 			TIMx->CCMR1 &= ~(TIM_CCMR1_OC2M_Msk);
 			TIMx->CCMR1 |= (TIM_CCMR1_OC2M_1 | TIM_CCMR1_OC2M_2);
+			/* Set the preload for the capture compare value register */
+			if (preload == true)
+			{
+				TIMx->CCMR1 |= TIM_CCMR1_OC2PE;
+			}
+			else
+			{
+				TIMx->CCMR1 &= TIM_CCMR1_OC2PE;
+			}
 			/* Disable the capture/compare 1 output for now*/
 			/* NB: Can also set the polarity in this register */
-			TIMx->CCER |= ~TIM_CCER_CC2E;
+			TIMx->CCER &= ~TIM_CCER_CC2E;
 			break;
 		case TIM_CHAN_3:
 			/* Set the first count in the capture compare register */
@@ -157,9 +175,18 @@ void setup_timer_capture_compare(TIM_TypeDef *TIMx, const TIMER_CHANNEL_E channe
 			/* CCR1. */
 			TIMx->CCMR2 &= ~(TIM_CCMR2_OC3M_Msk);
 			TIMx->CCMR2 |= (TIM_CCMR2_OC3M_1 | TIM_CCMR2_OC3M_2);
+			/* Set the preload for the capture compare value register */
+			if (preload == true)
+			{
+				TIMx->CCMR2 |= TIM_CCMR2_OC3PE;
+			}
+			else
+			{
+				TIMx->CCMR2 &= TIM_CCMR2_OC3PE;
+			}
 			/* Disable the capture/compare 1 output for now*/
 			/* NB: Can also set the polarity in this register */
-			TIMx->CCER |= ~TIM_CCER_CC3E;
+			TIMx->CCER &= ~TIM_CCER_CC3E;
 			break;
 		case TIM_CHAN_4:
 			/* Set the first count in the capture compare register */
@@ -168,18 +195,27 @@ void setup_timer_capture_compare(TIM_TypeDef *TIMx, const TIMER_CHANNEL_E channe
 			/* CCR1. */
 			TIMx->CCMR2 &= ~(TIM_CCMR2_OC4M_Msk);
 			TIMx->CCMR2 |= (TIM_CCMR2_OC4M_1 | TIM_CCMR2_OC4M_2);
+			/* Set the preload for the capture compare value register */
+			if (preload == true)
+			{
+				TIMx->CCMR2 |= TIM_CCMR2_OC4PE;
+			}
+			else
+			{
+				TIMx->CCMR2 &= TIM_CCMR2_OC4PE;
+			}
 			/* Disable the capture/compare 1 output for now*/
 			/* NB: Can also set the polarity in this register */
-			TIMx->CCER |= ~TIM_CCER_CC4E;
+			TIMx->CCER &= ~TIM_CCER_CC4E;
 			break;
 	}
 
 	/* Set the update event to generate an update of its registers and reset it */
-	TIMx->EGR |= TIM_EGR_UG;
+	//TIMx->EGR |= TIM_EGR_UG;
 	/* Set the ARPE bit to allow changes to registers to take immediate effect */
 	TIMx->CR1 |= TIM_CR1_ARPE;
 	/* Setup timer to trigger a hardware interrupt upon reaching the count */
-	TIMx->DIER |= TIM_DIER_UIE;
+	//TIMx->DIER |= TIM_DIER_UIE;
 	/* Disable the timer for now*/
 	TIMx->CR1 &= ~TIM_CR1_CEN;
 }
