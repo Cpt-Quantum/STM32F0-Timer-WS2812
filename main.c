@@ -73,9 +73,44 @@ void led_fill_dma_buffer(uint16_t offset, uint16_t length)
 	}
 }
 
+void dma_setup(void)
+{
+	/* Enable the clock for DMA channel 3 */
+	RCC->AHBENR |= RCC_AHBENR_DMA1EN;
+	/* First make sure DMA is disabled */
+	DMA1_Channel3->CCR &= ~(DMA_CCR_EN);
+	/* Enable the DMA transfer on timer 3 */
+	TIM3->DIER |= TIM_DIER_CC4DE;
+	/* Configure the peripheral data register address */
+	DMA1_Channel3->CPAR = (uint32_t)&TIM3->CCR4;
+	/* Configure the memory address */
+	DMA1_Channel3->CMAR = (uint32_t)&CCR_buffer[0];
+	/* Setup the DMA configuration register */
+	/* Set the memory and peripheral size to 16 bit (01) in respective bits */
+	/* Set priority to very high (11) in the PL bits */
+	/* Set the memory increment to true, whilst the peripheral increment is false */
+	/* Set the DMA to circular mode */
+	/* Set the direction to transfer from memory to peripheral */
+	/* Enable the half transfer and transfer complete interrupts */
+	DMA1_Channel3->CCR = (uint32_t)0;
+	DMA1_Channel3->CCR |= (DMA_CCR_PSIZE_0 | DMA_CCR_MSIZE_0 |
+							DMA_CCR_PL_0 | DMA_CCR_PL_1 | DMA_CCR_MINC |
+							DMA_CCR_CIRC | DMA_CCR_DIR |
+							DMA_CCR_HTIE | DMA_CCR_TCIE);
+	/* Set the size of the DMA transfer to the buffer size */
+	DMA1_Channel3->CNDTR = DMA_BUFF_SIZE;
+	/* Enable DMA interrupts for channel 3 in the NVIC */
+	NVIC_EnableIRQ(DMA1_Channel2_3_IRQn);
+	/* Enable DMA channel 3 */
+	DMA1_Channel3->CCR |= DMA_CCR_EN;
+
+}
+
 
 void led_show(TIM_TypeDef *TIMx)
 {
+	dma_setup();
+
 	/* Setup the timer for capture/compare mode */
 	setup_timer_capture_compare(TIM3, TIM_CHAN_4, DATA_1_PERIOD, 0, 0, false,true);
 
@@ -115,35 +150,6 @@ int main(void)
 	/* Initialise the timer */
 	init_timer(TIM3);
 	//start_timer(TIM3, 48000, 1000);
-
-	/* Enable the clock for DMA channel 3 */
-	RCC->AHBENR |= RCC_AHBENR_DMA1EN;
-	/* First make sure DMA is disabled */
-	DMA1_Channel3->CCR &= ~(DMA_CCR_EN);
-	/* Enable the DMA transfer on timer 3 */
-	TIM3->DIER |= TIM_DIER_CC4DE;
-	/* Configure the peripheral data register address */
-	DMA1_Channel3->CPAR = (uint32_t)&TIM3->CCR4;
-	/* Configure the memory address */
-	DMA1_Channel3->CMAR = (uint32_t)&CCR_buffer[0];
-	/* Setup the DMA configuration register */
-	/* Set the memory and peripheral size to 16 bit (01) in respective bits */
-	/* Set priority to very high (11) in the PL bits */
-	/* Set the memory increment to true, whilst the peripheral increment is false */
-	/* Set the DMA to circular mode */
-	/* Set the direction to transfer from memory to peripheral */
-	/* Enable the half transfer and transfer complete interrupts */
-	DMA1_Channel3->CCR = (uint32_t)0;
-	DMA1_Channel3->CCR |= (DMA_CCR_PSIZE_0 | DMA_CCR_MSIZE_0 |
-							DMA_CCR_PL_0 | DMA_CCR_PL_1 | DMA_CCR_MINC |
-							DMA_CCR_CIRC | DMA_CCR_DIR |
-							DMA_CCR_HTIE | DMA_CCR_TCIE);
-	/* Set the size of the DMA transfer to the buffer size */
-	DMA1_Channel3->CNDTR = DMA_BUFF_SIZE;
-	/* Enable DMA interrupts for channel 3 in the NVIC */
-	NVIC_EnableIRQ(DMA1_Channel2_3_IRQn);
-	/* Enable DMA channel 3 */
-	DMA1_Channel3->CCR |= DMA_CCR_EN;
 
 	/* Enable Port A GPIO clock */
 	RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
