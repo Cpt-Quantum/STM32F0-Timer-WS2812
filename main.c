@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define LED_PIN 4
+#define LED_PIN 0
 
 #define DATA_1_HIGH	38
 #define DATA_1_LOW  22
@@ -14,16 +14,16 @@
 #define DATA_0_LOW  41
 #define DATA_0_PERIOD (DATA_0_HIGH + DATA_0_LOW)
 
-#define NUM_LEDS 20
+#define NUM_LEDS 12
 
 /* Set the number of leds of data you want to buffer */
 /* NB: This should always be an even number! */
-#define DMA_LED_BUFF 10
+#define DMA_LED_BUFF 6
 #define DMA_BUFF_SIZE (DMA_LED_BUFF * 8 * 3)
 #define DMA_HALF_SIZE (DMA_BUFF_SIZE/2)
 #define DMA_LOWER_HALF_OFFSET 0
 #define DMA_UPPER_HALF_OFFSET DMA_HALF_SIZE
-#define DMA_PADDING 3
+#define DMA_PADDING 10 
 
 /* This buffer is used to store capture/compare values for the timer */
 uint16_t CCR_buffer[DMA_BUFF_SIZE];
@@ -60,8 +60,10 @@ void led_fill_dma_buffer(uint16_t offset, uint16_t length)
 			/* TODO: If LED pos reaches end + 1 here, trigger shutdown event */
 			if (led_pos >= ((NUM_LEDS * 3) + DMA_PADDING))
 			{
-				/* Disable timer */
+				/* Disable timer & DMA */
 				TIM3->CR1 &= ~(TIM_CR1_CEN);
+//				DMA1_Channel3->CCR &= ~(DMA_CCR_EN);
+//				TIM3->CCER &= ~(TIM_CCER_CC4E);
 			}
 		}
 		else
@@ -75,19 +77,19 @@ void led_fill_dma_buffer(uint16_t offset, uint16_t length)
 void led_show(TIM_TypeDef *TIMx)
 {
 	/* Setup the timer for capture/compare mode */
-	setup_timer_capture_compare(TIM3, TIM_CHAN_4, DATA_1_PERIOD, 0, 0, true);
+	setup_timer_capture_compare(TIM3, TIM_CHAN_4, DATA_1_PERIOD, 0, 0, false,true);
 
-	/* Set the capture/compare register with the value for the first bit */
-	if ((led_data[led_pos] & led_bit_mask) == 1)
-	{
-		TIMx->CCR4 = DATA_1_HIGH;
-	}
-	else
-	{
-		TIMx->CCR4 = DATA_0_HIGH;
-	}
-
-	led_bit_mask = led_bit_mask >> 1;
+//	/* Set the capture/compare register with the value for the first bit */
+//	if ((led_data[led_pos] & led_bit_mask) == 1)
+//	{
+//		TIMx->CCR4 = DATA_1_HIGH;
+//	}
+//	else
+//	{
+//		TIMx->CCR4 = DATA_0_HIGH;
+//	}
+//
+//	led_bit_mask = led_bit_mask >> 1;
 
 	/* Fill full buffer before starting */
 	led_fill_dma_buffer(DMA_LOWER_HALF_OFFSET, DMA_BUFF_SIZE);
@@ -116,6 +118,8 @@ int main(void)
 
 	/* Enable the clock for DMA channel 3 */
 	RCC->AHBENR |= RCC_AHBENR_DMA1EN;
+	/* First make sure DMA is disabled */
+	DMA1_Channel3->CCR &= ~(DMA_CCR_EN);
 	/* Enable the DMA transfer on timer 3 */
 	TIM3->DIER |= TIM_DIER_CC4DE;
 	/* Configure the peripheral data register address */
@@ -149,7 +153,7 @@ int main(void)
 	/* Set PA4 to output and set high */
 	gpio_init(PORTA, LED_PIN, GPIO_OUTPUT, 0);
 	/* Finally set the pin high */
-	GPIOA->ODR &= (1 << LED_PIN);
+	GPIOA->ODR |= (1 << LED_PIN);
 
 	/* Enable PB1 with alternate functionality */
 	gpio_init(PORTB, PIN_1, GPIO_ALT_MODE, GPIO_AF1);
@@ -160,9 +164,9 @@ int main(void)
 //		led_data[3 * i]       = 0xaa;
 //		led_data[(3 * i) + 1] = 0xaa;
 //		led_data[(3 * i) + 2] = 0xaa;
-		led_data[3 * i]       = 0;
-		led_data[(3 * i) + 1] = 0;
-		led_data[(3 * i) + 2] = 0;
+		led_data[3 * i]       = 10;
+		led_data[(3 * i) + 1] = 10;
+		led_data[(3 * i) + 2] = 10;
 //		led_data[3 * i]       = 255;
 //		led_data[(3 * i) + 1] = 255;
 //		led_data[(3 * i) + 2] = 255;

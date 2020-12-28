@@ -119,7 +119,7 @@ void start_timer(TIM_TypeDef *TIMx, uint16_t prescale, uint16_t count)
 }
 
 void setup_timer_capture_compare(TIM_TypeDef *TIMx, const TIMER_CHANNEL_E channel,
-		uint16_t ARR, uint16_t CCR, uint16_t prescale, bool preload)
+		uint16_t ARR, uint16_t CCR, uint16_t prescale, bool flip_polarity, bool preload)
 {
 	/* Set prescaler */
 	TIMx->PSC = prescale;
@@ -135,6 +135,10 @@ void setup_timer_capture_compare(TIM_TypeDef *TIMx, const TIMER_CHANNEL_E channe
 			/* CCR1. */
 			TIMx->CCMR1 &= ~(TIM_CCMR1_OC1M_Msk);
 			TIMx->CCMR1 |= (TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC1M_2);
+			if (flip_polarity == true)
+			{
+				TIMx->CCMR1 |= (TIM_CCMR1_OC1M_0);
+			}
 			/* Set the preload for the capture compare value register */
 			if (preload == true)
 			{
@@ -155,6 +159,10 @@ void setup_timer_capture_compare(TIM_TypeDef *TIMx, const TIMER_CHANNEL_E channe
 			/* CCR1. */
 			TIMx->CCMR1 &= ~(TIM_CCMR1_OC2M_Msk);
 			TIMx->CCMR1 |= (TIM_CCMR1_OC2M_1 | TIM_CCMR1_OC2M_2);
+			if (flip_polarity == true)
+			{
+				TIMx->CCMR1 |= (TIM_CCMR1_OC2M_0);
+			}
 			/* Set the preload for the capture compare value register */
 			if (preload == true)
 			{
@@ -175,6 +183,10 @@ void setup_timer_capture_compare(TIM_TypeDef *TIMx, const TIMER_CHANNEL_E channe
 			/* CCR1. */
 			TIMx->CCMR2 &= ~(TIM_CCMR2_OC3M_Msk);
 			TIMx->CCMR2 |= (TIM_CCMR2_OC3M_1 | TIM_CCMR2_OC3M_2);
+			if (flip_polarity == true)
+			{
+				TIMx->CCMR2 |= (TIM_CCMR2_OC3M_0);
+			}
 			/* Set the preload for the capture compare value register */
 			if (preload == true)
 			{
@@ -195,6 +207,10 @@ void setup_timer_capture_compare(TIM_TypeDef *TIMx, const TIMER_CHANNEL_E channe
 			/* CCR1. */
 			TIMx->CCMR2 &= ~(TIM_CCMR2_OC4M_Msk);
 			TIMx->CCMR2 |= (TIM_CCMR2_OC4M_1 | TIM_CCMR2_OC4M_2);
+			if (flip_polarity == true)
+			{
+				TIMx->CCMR2 |= (TIM_CCMR2_OC4M_0);
+			}
 			/* Set the preload for the capture compare value register */
 			if (preload == true)
 			{
