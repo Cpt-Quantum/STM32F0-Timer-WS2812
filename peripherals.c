@@ -229,7 +229,7 @@ void setup_timer_capture_compare(TIM_TypeDef *TIMx, const TIMER_CHANNEL_E channe
 	/* Set the update event to generate an update of its registers and reset it */
 	//TIMx->EGR |= TIM_EGR_UG;
 	/* Set the ARPE bit to allow changes to registers to take immediate effect */
-	TIMx->CR1 |= TIM_CR1_ARPE;
+	//TIMx->CR1 |= TIM_CR1_ARPE;
 	/* Setup timer to trigger a hardware interrupt upon reaching the count */
 	//TIMx->DIER |= TIM_DIER_UIE;
 	/* Disable the timer for now*/

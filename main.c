@@ -14,20 +14,18 @@
 #define DATA_0_LOW  41
 #define DATA_0_PERIOD (DATA_0_HIGH + DATA_0_LOW)
 
-#define NUM_LEDS 12
+#define NUM_LEDS 16
 
 /* Set the number of leds of data you want to buffer */
 /* NB: This should always be an even number! */
-#define DMA_LED_BUFF 6
+#define DMA_LED_BUFF 8
 #define DMA_BUFF_SIZE (DMA_LED_BUFF * 8 * 3)
 #define DMA_HALF_SIZE (DMA_BUFF_SIZE/2)
 #define DMA_LOWER_HALF_OFFSET 0
 #define DMA_UPPER_HALF_OFFSET DMA_HALF_SIZE
-#define DMA_PADDING 10 
 
 /* This buffer is used to store capture/compare values for the timer */
 uint16_t CCR_buffer[DMA_BUFF_SIZE];
-
 
 uint8_t led_data[NUM_LEDS * 3];
 uint8_t led_bit_mask = 0B10000000;
@@ -57,14 +55,6 @@ void led_fill_dma_buffer(uint16_t offset, uint16_t length)
 		{
 			led_bit_mask = 0B10000000;
 			led_pos = led_pos + 1;
-			/* TODO: If LED pos reaches end + 1 here, trigger shutdown event */
-			if (led_pos >= ((NUM_LEDS * 3) + DMA_PADDING))
-			{
-				/* Disable timer & DMA */
-				TIM3->CR1 &= ~(TIM_CR1_CEN);
-//				DMA1_Channel3->CCR &= ~(DMA_CCR_EN);
-//				TIM3->CCER &= ~(TIM_CCER_CC4E);
-			}
 		}
 		else
 		{
@@ -99,11 +89,12 @@ void dma_setup(void)
 							DMA_CCR_HTIE | DMA_CCR_TCIE);
 	/* Set the size of the DMA transfer to the buffer size */
 	DMA1_Channel3->CNDTR = DMA_BUFF_SIZE;
+	/* Set the priority to high for DMA */
+	NVIC_SetPriority(DMA1_Channel2_3_IRQn, 0);
 	/* Enable DMA interrupts for channel 3 in the NVIC */
 	NVIC_EnableIRQ(DMA1_Channel2_3_IRQn);
 	/* Enable DMA channel 3 */
 	DMA1_Channel3->CCR |= DMA_CCR_EN;
-
 }
 
 
@@ -113,18 +104,6 @@ void led_show(TIM_TypeDef *TIMx)
 
 	/* Setup the timer for capture/compare mode */
 	setup_timer_capture_compare(TIM3, TIM_CHAN_4, DATA_1_PERIOD, 0, 0, false,true);
-
-//	/* Set the capture/compare register with the value for the first bit */
-//	if ((led_data[led_pos] & led_bit_mask) == 1)
-//	{
-//		TIMx->CCR4 = DATA_1_HIGH;
-//	}
-//	else
-//	{
-//		TIMx->CCR4 = DATA_0_HIGH;
-//	}
-//
-//	led_bit_mask = led_bit_mask >> 1;
 
 	/* Fill full buffer before starting */
 	led_fill_dma_buffer(DMA_LOWER_HALF_OFFSET, DMA_BUFF_SIZE);
@@ -144,12 +123,9 @@ int main(void)
 
 	/* Enable the clock for timer 3 */
 	RCC->APB1ENR |= RCC_APB1ENR_TIM3EN;
-	//NVIC_SetPriority(TIM3_IRQn, 0x01);
-	//NVIC_EnableIRQ(TIM3_IRQn);
 
 	/* Initialise the timer */
 	init_timer(TIM3);
-	//start_timer(TIM3, 48000, 1000);
 
 	/* Enable Port A GPIO clock */
 	RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
@@ -170,13 +146,28 @@ int main(void)
 //		led_data[3 * i]       = 0xaa;
 //		led_data[(3 * i) + 1] = 0xaa;
 //		led_data[(3 * i) + 2] = 0xaa;
-		led_data[3 * i]       = 10;
-		led_data[(3 * i) + 1] = 10;
-		led_data[(3 * i) + 2] = 10;
-//		led_data[3 * i]       = 255;
-//		led_data[(3 * i) + 1] = 255;
-//		led_data[(3 * i) + 2] = 255;
+//		led_data[3 * i]       = 10;
+//		led_data[(3 * i) + 1] = 10;
+//		led_data[(3 * i) + 2] = 10;
+		led_data[3 * i]       = 0xF0;
+		led_data[(3 * i) + 1] = 0xF0;
+		led_data[(3 * i) + 2] = 0xF0;
 	}
+
+	led_data[(3*NUM_LEDS) - 1] = 0xFF;
+
+//	led_data[0] = 255;
+//	led_data[1] = 0;
+//	led_data[2] = 255;
+//	led_data[3] = 0;
+//	led_data[4] = 255;
+//	led_data[5] = 0;
+//	led_data[6] = 255;
+//	led_data[7] = 0;
+//	led_data[8] = 255;
+//	led_data[9] = 0;
+//	led_data[10] = 255;
+//	led_data[11] = 0xaa;
 	
 	/* Call led setup function */
 	led_show(TIM3);
@@ -184,8 +175,6 @@ int main(void)
 	/* Loop forever */
 	while(1)
 	{
-//		GPIOB->BSRR = GPIO_BSRR_BS_1;
-//		GPIOB->BSRR = GPIO_BSRR_BR_1;
 	};
 }
 
@@ -202,7 +191,7 @@ void TIM3_IRQHandler(void)
 void DMA1_Channel2_3_IRQHandler(void)
 {
 	/* Half way through buffer interrupt */
-	if (DMA1->ISR | DMA_ISR_HTIF3)
+	if (DMA1->ISR & DMA_ISR_HTIF3)
 	{
 		/* Fill the lower half of the buffer */
 		led_fill_dma_buffer(DMA_LOWER_HALF_OFFSET, DMA_HALF_SIZE);
@@ -211,11 +200,17 @@ void DMA1_Channel2_3_IRQHandler(void)
 		DMA1->IFCR = DMA_IFCR_CHTIF3;
 	}
 	/* End of buffer interrupt */
-	else if (DMA1->ISR | DMA_ISR_TCIF3)
+	else if (DMA1->ISR & DMA_ISR_TCIF3)
 	{
+		/* Disable timer */
+		if (led_pos > (NUM_LEDS * 3))
+		{
+			TIM3->CR1 &= ~(TIM_CR1_CEN);
+		}
+
 		/* Fill the upper half of the buffer */
 		led_fill_dma_buffer(DMA_UPPER_HALF_OFFSET, DMA_HALF_SIZE);
-
+		
 		/* Clear the interrupt flag */
 		DMA1->IFCR = DMA_IFCR_CTCIF3;
 	}
