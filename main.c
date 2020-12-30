@@ -14,11 +14,11 @@
 #define DATA_0_LOW  41
 #define DATA_0_PERIOD (DATA_0_HIGH + DATA_0_LOW)
 
-#define NUM_LEDS 16
+#define NUM_LEDS 8
 
 /* Set the number of leds of data you want to buffer */
 /* NB: This should always be an even number! */
-#define DMA_LED_BUFF 8
+#define DMA_LED_BUFF 4
 #define DMA_BUFF_SIZE (DMA_LED_BUFF * 8 * 3)
 #define DMA_HALF_SIZE (DMA_BUFF_SIZE/2)
 #define DMA_LOWER_HALF_OFFSET 0
@@ -33,7 +33,7 @@ uint16_t led_pos = 0;
 
 void led_fill_dma_buffer(uint16_t offset, uint16_t length)
 {
-	for (uint16_t i = offset; i < length; i++)
+	for (uint16_t i = offset; i < (length + offset); i++)
 	{
 		/* Add padding if the array position exceeds the number of LEDs */
 		if (led_pos >= (NUM_LEDS * 3))
@@ -146,12 +146,12 @@ int main(void)
 //		led_data[3 * i]       = 0xaa;
 //		led_data[(3 * i) + 1] = 0xaa;
 //		led_data[(3 * i) + 2] = 0xaa;
-//		led_data[3 * i]       = 10;
-//		led_data[(3 * i) + 1] = 10;
-//		led_data[(3 * i) + 2] = 10;
-		led_data[3 * i]       = 0xF0;
-		led_data[(3 * i) + 1] = 0xF0;
-		led_data[(3 * i) + 2] = 0xF0;
+		led_data[3 * i]       = 10;
+		led_data[(3 * i) + 1] = 10;
+		led_data[(3 * i) + 2] = 10;
+//		led_data[3 * i]       = 0xF0;
+//		led_data[(3 * i) + 1] = 0xF0;
+//		led_data[(3 * i) + 2] = 0xF0;
 	}
 
 	led_data[(3*NUM_LEDS) - 1] = 0xFF;
@@ -210,7 +210,7 @@ void DMA1_Channel2_3_IRQHandler(void)
 
 		/* Fill the upper half of the buffer */
 		led_fill_dma_buffer(DMA_UPPER_HALF_OFFSET, DMA_HALF_SIZE);
-		
+	
 		/* Clear the interrupt flag */
 		DMA1->IFCR = DMA_IFCR_CTCIF3;
 	}
