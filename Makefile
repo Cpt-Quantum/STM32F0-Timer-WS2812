@@ -39,6 +39,7 @@ LFLAGS += -T$(LSCRIPT)
 STARTUP = ./startup.s
 C_SRC = ./main.c
 C_SRC += ./peripherals.c
+C_SRC += ./ws2812.c
 
 OBJS = $(STARTUP:.s=.o)
 OBJS += $(C_SRC:.c=.o)
