@@ -83,6 +83,8 @@ typedef enum
 	TIM_CHAN_4 = 3,
 } TIMER_CHANNEL_E;
 
+extern volatile uint32_t systick;
+
 void gpio_init(GPIO_PORT_E gpio_port, const GPIO_PIN_E io_pin, GPIO_MODER_E gpio_mode,
 				GPIO_ALT_MODE_E gpio_af);
 
@@ -94,5 +96,7 @@ void setup_timer_capture_compare(TIM_TypeDef *TIMx, const TIMER_CHANNEL_E channe
 		uint16_t ARR, uint16_t CCR, uint16_t prescale, bool flip_polarity, bool preload);
 
 void clock_setup(bool external_clk, bool use_pll, PLL_MULT_E pll_mult);
+
+void delay_ms(uint32_t ms);
 
 #endif //PERIPHERALS_H

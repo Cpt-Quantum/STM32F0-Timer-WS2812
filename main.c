@@ -21,18 +21,6 @@ rgb_led_t leds = {
 
 #define SYSCLK_FREQ 48000000
 
-/* SysTick definitions */
-volatile uint32_t systick = 0;
-
-void delay_ms(uint32_t ms)
-{
-	uint32_t cycle_count = systick + ms;
-	while(systick < cycle_count)
-	{
-		__asm__("WFI");
-	}
-}
-
 int main(void)
 {
 	/* Initialisation */
@@ -75,35 +63,38 @@ int main(void)
 	dma_setup();
 	led_init();
 
-//	led_write_all(&leds, 0, 0, 180);
-//	led_show(&leds, TIM3);
-//	delay_ms(1000);
-
 	/* Loop forever */
 	while(1)
 	{
-	/* Set all LEDs to red and send out the data */
-	led_write_all(&leds, 180, 0, 0);
-	led_show(&leds, TIM3);
+//	/* Set all LEDs to red and send out the data */
+//	led_write_all(&leds, 180, 0, 0);
+//	led_show(&leds, TIM3);
+//
+//	/* Wait 1s */
+//	delay_ms(1000);
+//
+//	/* Set all LEDs to green and send out the data */
+//	led_write_all(&leds, 0, 180, 0);
+//	led_show(&leds, TIM3);
+//
+//	/* Wait 1s */
+//	delay_ms(1000);
+//
+//	/* Set all LEDs to blue and send out the data */
+//	led_write_all(&leds, 0, 0, 180);
+//	led_show(&leds, TIM3);
+//	
+//	/* Wait 1s */
+//	delay_ms(1000);
+//
+//	/* Rinse, repeat */
+//	led_breathe_effect(&leds, 150, 0, 0, 50, 20);
+//	led_breathe_effect(&leds, 0, 150, 0, 50, 20);
+//	led_breathe_effect(&leds, 0, 0, 150, 50, 20);
 
-	/* Wait 1s */
-	delay_ms(1000);
-
-	/* Set all LEDs to green and send out the data */
-	led_write_all(&leds, 0, 180, 0);
-	led_show(&leds, TIM3);
-
-	/* Wait 1s */
-	delay_ms(1000);
-
-	/* Set all LEDs to blue and send out the data */
-	led_write_all(&leds, 0, 0, 255);
-	led_show(&leds, TIM3);
-	
-	/* Wait 1s */
-	delay_ms(1000);
-
-	/* Rinse, repeat */
+	led_pulse(&leds, 20, 0, 0, 240, 0, 0, 100);
+	led_pulse(&leds, 0, 20, 0, 0, 240, 0, 100);
+	led_pulse(&leds, 0, 0, 20, 0, 0, 240, 100);
 	};
 }
 

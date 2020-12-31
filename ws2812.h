@@ -32,6 +32,14 @@ typedef struct
 	const LED_FORMAT_E data_format;
 } rgb_led_t;
 
+typedef struct
+{
+	uint8_t red;
+	uint8_t green;
+	uint8_t blue;
+	uint8_t white;
+} rgbw_t;
+
 void led_fill_dma_buffer(rgb_led_t *leds, uint16_t offset, uint16_t length);
 
 void dma_setup(void);
@@ -39,6 +47,17 @@ void dma_setup(void);
 void led_init(void);
 
 void led_write_all(rgb_led_t *leds, uint8_t red, uint8_t green, uint8_t blue);
+
+void led_write_pixel(rgb_led_t *leds, uint16_t pixel, uint8_t red,
+					uint8_t green, uint8_t blue);
+
+void led_breathe_effect(rgb_led_t *leds, uint8_t max_red, uint8_t max_green,
+						uint8_t max_blue, uint8_t steps, uint32_t delay_ms);
+
+void led_pulse(rgb_led_t *leds, uint8_t background_red,
+				uint8_t background_green, uint8_t background_blue,
+				uint8_t pulse_red, uint8_t pulse_green, uint8_t pulse_blue,
+				uint32_t pulse_move_speed_ms);
 
 void led_show(rgb_led_t *leds, TIM_TypeDef *TIMx);
 

@@ -293,3 +293,16 @@ void clock_setup(bool external_clk, bool use_pll, PLL_MULT_E pll_mult)
 		while(!(RCC->CFGR & RCC_CFGR_SWS_HSI)){};
 	}
 }
+
+/* SysTick definitions */
+volatile uint32_t systick = 0;
+
+void delay_ms(uint32_t ms)
+{
+        uint32_t cycle_count = systick + ms;
+        while(systick < cycle_count)
+        {
+                __asm__("WFI");
+        }
+}
+

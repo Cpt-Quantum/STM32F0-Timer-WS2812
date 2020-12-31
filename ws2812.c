@@ -92,6 +92,59 @@ void led_write_all(rgb_led_t *leds, uint8_t red, uint8_t green, uint8_t blue)
 	}
 }
 
+void led_write_pixel(rgb_led_t *leds, uint16_t pixel, uint8_t red,
+					uint8_t green, uint8_t blue)
+{
+	leds->data[(3 * pixel)] = green;
+	leds->data[(3 * pixel) + 1] = red;
+	leds->data[(3 * pixel) + 2] = blue;
+}
+
+void led_breathe_effect(rgb_led_t *leds, uint8_t max_red, uint8_t max_green,
+						uint8_t max_blue, uint8_t steps, uint32_t delay)
+{
+	for (uint8_t j = steps; j > 0; j--)
+	{
+		for (uint16_t i = 0; i < leds->num_leds; i++)
+		{
+			leds->data[(3 * i)]     = max_green / j ;
+			leds->data[(3 * i) + 1] = max_red / j;
+			leds->data[(3 * i) + 2] = max_blue / j;
+		}
+		led_show(leds, TIM3);
+		delay_ms(delay);
+	}
+	for (uint8_t j = 0; j < steps; j++)
+	{
+		for (uint16_t i = 0; i < leds->num_leds; i++)
+		{
+			leds->data[(3 * i)]     = max_green / j ;
+			leds->data[(3 * i) + 1] = max_red / j;
+			leds->data[(3 * i) + 2] = max_blue / j;
+		}
+		led_show(leds, TIM3);
+		delay_ms(delay);
+	}
+}
+
+void led_pulse(rgb_led_t *leds, uint8_t background_red,
+				uint8_t background_green, uint8_t background_blue,
+				uint8_t pulse_red, uint8_t pulse_green, uint8_t pulse_blue,
+				uint32_t pulse_move_speed_ms)
+{
+	/* Initialise background colour */
+	led_write_all(leds, background_red, background_green, background_blue);
+
+	for (uint16_t i = 1; i < leds->num_leds; i++)
+	{
+		/* Reset the previous pixel back to background colour first */
+		led_write_pixel(leds, (i-1), background_red, background_green, background_blue);
+		led_write_pixel(leds, i, pulse_red, pulse_green, pulse_blue);
+		led_show(leds, TIM3);
+		delay_ms(pulse_move_speed_ms);
+	}
+}
+
 void led_init(void)
 {
 	/* Setup the timer for capture/compare mode */
