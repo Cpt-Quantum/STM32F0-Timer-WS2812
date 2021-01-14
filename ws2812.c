@@ -16,12 +16,12 @@
 /* This buffer is used to store capture/compare values for the timer */
 uint16_t CCR_buffer[DMA_BUFF_SIZE];
 
-void led_fill_dma_buffer(rgb_led_t *leds, uint16_t offset, uint16_t length)
+void led_fill_dma_buffer(led_t *leds, uint16_t offset, uint16_t length)
 {
 	for (uint16_t i = offset; i < (length + offset); i++)
 	{
 		/* Add padding if the array position exceeds the number of LEDs */
-		if (leds->arr_pos >= (leds->num_leds * 3))
+		if (leds->arr_pos >= (leds->num_leds * leds->led_bytes))
 		{
 			CCR_buffer[i] = 0;
 		}
@@ -82,7 +82,7 @@ void dma_setup(void)
 	DMA1_Channel3->CCR |= DMA_CCR_EN;
 }
 
-void led_write_all(rgb_led_t *leds, uint8_t red, uint8_t green, uint8_t blue)
+void led_rgb_write_all(led_t *leds, uint8_t red, uint8_t green, uint8_t blue)
 {
 	for (uint16_t i = 0; i < leds->num_leds; i++)
 	{
@@ -92,7 +92,7 @@ void led_write_all(rgb_led_t *leds, uint8_t red, uint8_t green, uint8_t blue)
 	}
 }
 
-void led_write_pixel(rgb_led_t *leds, uint16_t pixel, uint8_t red,
+void led_rgb_write_pixel(led_t *leds, uint16_t pixel, uint8_t red,
 					uint8_t green, uint8_t blue)
 {
 	leds->data[(3 * pixel)] = green;
@@ -100,7 +100,28 @@ void led_write_pixel(rgb_led_t *leds, uint16_t pixel, uint8_t red,
 	leds->data[(3 * pixel) + 2] = blue;
 }
 
-void led_breathe_effect(rgb_led_t *leds, uint8_t max_red, uint8_t max_green,
+void led_rgbw_write_all(led_t *leds, uint8_t red, uint8_t green, uint8_t blue,
+						uint8_t white)
+{
+	for (uint16_t i = 0; i < leds->num_leds; i++)
+	{
+		leds->data[(4 * i)]     = green;
+		leds->data[(4 * i) + 1] = red;
+		leds->data[(4 * i) + 2] = blue;
+		leds->data[(4 * i) + 3] = white;
+	}
+}
+
+void led_rgbw_write_pixel(led_t *leds, uint16_t pixel, uint8_t red,
+							uint8_t green, uint8_t blue, uint8_t white)
+{
+		leds->data[(4 * pixel)]     = green;
+		leds->data[(4 * pixel) + 1] = red;
+		leds->data[(4 * pixel) + 2] = blue;
+		leds->data[(4 * pixel) + 3] = white;
+}
+
+void led_breathe_effect(led_t *leds, uint8_t max_red, uint8_t max_green,
 						uint8_t max_blue, uint8_t steps, uint32_t delay)
 {
 	for (uint8_t j = steps; j > 0; j--)
@@ -127,19 +148,63 @@ void led_breathe_effect(rgb_led_t *leds, uint8_t max_red, uint8_t max_green,
 	}
 }
 
-void led_pulse(rgb_led_t *leds, uint8_t background_red,
+void led_pulse(led_t *leds, uint8_t background_red,
 				uint8_t background_green, uint8_t background_blue,
 				uint8_t pulse_red, uint8_t pulse_green, uint8_t pulse_blue,
 				uint32_t pulse_move_speed_ms)
 {
 	/* Initialise background colour */
-	led_write_all(leds, background_red, background_green, background_blue);
+	led_rgb_write_all(leds, background_red, background_green, background_blue);
 
 	for (uint16_t i = 1; i < leds->num_leds; i++)
 	{
 		/* Reset the previous pixel back to background colour first */
-		led_write_pixel(leds, (i-1), background_red, background_green, background_blue);
-		led_write_pixel(leds, i, pulse_red, pulse_green, pulse_blue);
+		led_rgb_write_pixel(leds, (i-1), background_red, background_green, background_blue);
+		led_rgb_write_pixel(leds, i, pulse_red, pulse_green, pulse_blue);
+		led_show(leds, TIM3);
+		delay_ms(pulse_move_speed_ms);
+	}
+}
+
+void led_rgbw_pulse(led_t *leds,
+				uint8_t background_red,
+				uint8_t background_green,
+				uint8_t background_blue,
+				uint8_t background_white,
+				uint8_t pulse_red,
+				uint8_t pulse_green,
+				uint8_t pulse_blue,
+				uint8_t pulse_white,
+				uint32_t pulse_move_speed_ms)
+{
+	/* Initialise background colour */
+	led_rgbw_write_all(leds,
+						background_red,
+						background_green,
+						background_blue,
+						background_white);
+
+	led_rgbw_write_pixel(leds, 0,
+							pulse_red,
+							pulse_green,
+							pulse_blue,
+							pulse_white);
+	led_show(leds, TIM3);
+	delay_ms(pulse_move_speed_ms);
+
+	for (uint16_t i = 1; i < leds->num_leds; i++)
+	{
+		/* Reset the previous pixel back to background colour first */
+		led_rgbw_write_pixel(leds, (i-1), 
+								background_red,
+								background_green,
+								background_blue,
+								background_white);
+		led_rgbw_write_pixel(leds, i, 
+								pulse_red,
+								pulse_green,
+								pulse_blue,
+								pulse_white);
 		led_show(leds, TIM3);
 		delay_ms(pulse_move_speed_ms);
 	}
@@ -151,7 +216,7 @@ void led_init(void)
 	setup_timer_capture_compare(TIM3, TIM_CHAN_4, DATA_1_PERIOD, 0, 0, false,true);
 }
 
-void led_show(rgb_led_t *leds, TIM_TypeDef *TIMx)
+void led_show(led_t *leds, TIM_TypeDef *TIMx)
 {
 	/* Reset the array position and bit mask before starting */
 	leds->bit_mask = 0B10000000;

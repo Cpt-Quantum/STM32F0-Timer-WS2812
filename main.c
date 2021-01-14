@@ -8,16 +8,19 @@
 
 #define LED_PIN 0
 
-#define NUM_LEDS 12
+#define NUM_LEDS 58
 
 /* Define the LED data structure and point it at the LED data array */
-uint8_t led_data[NUM_LEDS * 3];
-rgb_led_t leds = {
-					.data = led_data,
-					.bit_mask = 0B10000000,
-					.arr_pos = 0,
-					.num_leds = NUM_LEDS
-				 };	
+#define LED_BYTES 4
+uint8_t led_data[NUM_LEDS * LED_BYTES];
+led_t leds = {
+				.data = led_data,
+				.bit_mask = 0B10000000,
+				.arr_pos = 0,
+				.num_leds = NUM_LEDS,
+				.data_format = LED_GRB,
+				.led_bytes = LED_BYTES,
+			 };	
 
 #define SYSCLK_FREQ 48000000
 
@@ -63,25 +66,28 @@ int main(void)
 	dma_setup();
 	led_init();
 
+//	led_rgbw_write_all(&leds, 0,0, 0,0);
+//	led_show(&leds, TIM3);
+
 	/* Loop forever */
 	while(1)
 	{
 //	/* Set all LEDs to red and send out the data */
-//	led_write_all(&leds, 180, 0, 0);
+//	led_rgb_write_all(&leds, 180, 0, 0);
 //	led_show(&leds, TIM3);
 //
 //	/* Wait 1s */
 //	delay_ms(1000);
 //
 //	/* Set all LEDs to green and send out the data */
-//	led_write_all(&leds, 0, 180, 0);
+//	led_rgb_write_all(&leds, 0, 180, 0);
 //	led_show(&leds, TIM3);
 //
 //	/* Wait 1s */
 //	delay_ms(1000);
 //
 //	/* Set all LEDs to blue and send out the data */
-//	led_write_all(&leds, 0, 0, 180);
+//	led_rgb_write_all(&leds, 0, 0, 180);
 //	led_show(&leds, TIM3);
 //	
 //	/* Wait 1s */
@@ -92,9 +98,30 @@ int main(void)
 //	led_breathe_effect(&leds, 0, 150, 0, 50, 20);
 //	led_breathe_effect(&leds, 0, 0, 150, 50, 20);
 
-	led_pulse(&leds, 20, 0, 0, 240, 0, 0, 100);
-	led_pulse(&leds, 0, 20, 0, 0, 240, 0, 100);
-	led_pulse(&leds, 0, 0, 20, 0, 0, 240, 100);
+//	led_pulse(&leds, 20, 0, 0, 240, 0, 0, 100);
+//	led_pulse(&leds, 0, 20, 0, 0, 240, 0, 100);
+//	led_pulse(&leds, 0, 0, 20, 0, 0, 240, 100);
+
+//	led_rgbw_write_all(&leds, 255, 0, 0, 0);
+//	led_show(&leds, TIM3);
+//	delay_ms(1000);
+//
+//	led_rgbw_write_all(&leds, 0, 255, 0, 0);
+//	led_show(&leds, TIM3);
+//	delay_ms(1000);
+//	
+//	led_rgbw_write_all(&leds, 0, 0, 255, 0);
+//	led_show(&leds, TIM3);
+//	delay_ms(1000);
+//
+//	led_rgbw_write_all(&leds, 0, 0, 0, 255);
+//	led_show(&leds, TIM3);
+//	delay_ms(1000);
+
+	led_rgbw_pulse(&leds, 20, 0, 0, 0, 240, 0, 0, 0, 25);
+	led_rgbw_pulse(&leds, 0, 20, 0, 0, 0, 240, 0, 0, 25);
+	led_rgbw_pulse(&leds, 0, 0, 20, 0, 0, 0, 240, 0, 25);
+	led_rgbw_pulse(&leds, 0, 0, 0, 20, 0, 0, 0, 240, 25);
 	};
 }
 
@@ -127,7 +154,7 @@ void DMA1_Channel2_3_IRQHandler(void)
 	else if (DMA1->ISR & DMA_ISR_TCIF3)
 	{
 		/* Disable timer */
-		if (leds.arr_pos > (leds.num_leds * 3))
+		if (leds.arr_pos > (leds.num_leds * leds.led_bytes))
 		{
 			TIM3->CR1 &= ~(TIM_CR1_CEN);
 		}
