@@ -91,6 +91,13 @@ void led_rgbw_pulse(led_t *leds,
 					uint8_t pulse_white,
 					uint32_t pulse_move_speed_ms);
 
+void led_rgbw_centre_ripple(led_t *leds,
+							uint8_t red,
+							uint8_t green,
+							uint8_t blue,
+							uint8_t white,
+							uint32_t ripple_update_delay);
+
 void led_show(led_t *leds, TIM_TypeDef *TIMx);
 
 #endif //WS2812_H

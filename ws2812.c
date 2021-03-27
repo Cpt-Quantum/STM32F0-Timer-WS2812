@@ -210,6 +210,48 @@ void led_rgbw_pulse(led_t *leds,
 	}
 }
 
+void led_rgbw_centre_ripple(led_t *leds,
+								uint8_t red,
+								uint8_t green,
+								uint8_t blue,
+								uint8_t white,
+								uint32_t ripple_update_delay)
+{
+	/* Calculate the centre positions */
+	uint16_t centre_r = (leds->num_leds + 1)/2;
+	uint16_t centre_l = centre_r - 1;
+
+	/* Set the two middle pixels to the default colour and then add the */
+	/* colour to the next adjacent pixels. Continue until all LEDs are */
+	/* illuminated. */
+	for (uint16_t i = 0; i < ((leds->num_leds)/2); i++)
+	{
+		led_rgbw_write_pixel(leds, centre_l - i,
+								red,
+								green,
+								blue,
+								white);
+		led_rgbw_write_pixel(leds, centre_r + i,
+								red,
+								green,
+								blue,
+								white);
+		led_show(leds, TIM3);
+
+		delay_ms(ripple_update_delay);
+	}
+
+	/* Now remove the coloured pixels one by one back to the central pixels */
+	for (uint16_t i = (((leds->num_leds)/2) - 1); i > 0; i--)
+	{
+		led_rgbw_write_pixel(leds, centre_l - i, 0, 0, 0, 0);
+		led_rgbw_write_pixel(leds, centre_r + i, 0, 0, 0, 0);
+		led_show(leds, TIM3);
+
+		delay_ms(ripple_update_delay);
+	}
+}
+
 void led_init(void)
 {
 	/* Setup the timer for capture/compare mode */
