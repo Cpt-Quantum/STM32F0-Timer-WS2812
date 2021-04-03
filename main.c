@@ -55,16 +55,8 @@ int main(void)
 	/* Initialise system clock */
 	clock_setup(false, true, PLL_MULT_X12);
 
-	/* Enable the clock for timer 3 */
-	RCC->APB1ENR |= RCC_APB1ENR_TIM3EN;
-
 	/* Initialise the timer */
 	init_timer(TIM3);
-
-	/* Enable Port A GPIO clock */
-	RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
-	/* Enable Port B GPIO clock */
-	RCC->AHBENR |= RCC_AHBENR_GPIOBEN;
 
 	/* Turn the LED on */
 	gpio_init(GPIOA, LED_PIN, GPIO_OUTPUT, GPIO_AF0);

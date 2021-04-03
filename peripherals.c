@@ -8,6 +8,28 @@
 void gpio_init(GPIO_TypeDef *gpio_port, const GPIO_PIN_E io_pin, GPIO_MODER_E gpio_mode,
 				GPIO_ALT_MODE_E gpio_af)
 {
+	/* Enable the clock to the specified port */
+	if (gpio_port == GPIOA)
+	{
+		RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
+	}
+	else if (gpio_port == GPIOB)
+	{
+		RCC->AHBENR |= RCC_AHBENR_GPIOBEN;
+	}
+	else if (gpio_port == GPIOC)
+	{
+		RCC->AHBENR |= RCC_AHBENR_GPIOCEN;
+	}
+	else if (gpio_port == GPIOD)
+	{
+		RCC->AHBENR |= RCC_AHBENR_GPIODEN;
+	}
+	else if (gpio_port == GPIOF)
+	{
+		RCC->AHBENR |= RCC_AHBENR_GPIOFEN;
+	}
+
 	/* Set the GPIO mode for the specified pin */
 	gpio_port->MODER &= ~(GPIO_MODER_MAX << (io_pin * 2));
 	gpio_port->MODER |= (gpio_mode << (io_pin * 2));
@@ -34,29 +56,34 @@ void init_timer(TIM_TypeDef *TIMx)
 	/* Make sure the timer is disabled before starting initialisation */
 	TIMx->CR1 &= ~(TIM_CR1_CEN);
 
-	/* Reset and start the timer */
+	/* Enable the clock to the timer and reset it */
 	if (TIMx == TIM1)
 	{
+		RCC->APB2ENR |= RCC_APB2ENR_TIM1EN;
 		RCC->APB2RSTR |=   RCC_APB2RSTR_TIM1RST;
 		RCC->APB2RSTR &= ~(RCC_APB2RSTR_TIM1RST);
 	}
 	else if (TIMx == TIM16)
 	{
+		RCC->APB2ENR |= RCC_APB2ENR_TIM16EN;
 		RCC->APB2RSTR |=   RCC_APB2RSTR_TIM16RST;
 		RCC->APB2RSTR &= ~(RCC_APB2RSTR_TIM16RST);
 	}
 	else if (TIMx == TIM17)
 	{
+		RCC->APB2ENR |= RCC_APB2ENR_TIM17EN;
 		RCC->APB2RSTR |=   RCC_APB2RSTR_TIM17RST;
 		RCC->APB2RSTR &= ~(RCC_APB2RSTR_TIM17RST);
 	}
 	else if (TIMx == TIM3)
 	{
+		RCC->APB1ENR |= RCC_APB1ENR_TIM3EN;
 		RCC->APB1RSTR |=   RCC_APB1RSTR_TIM3RST;
 		RCC->APB1RSTR &= ~(RCC_APB1RSTR_TIM3RST);
 	}
 	else if (TIMx == TIM14)
 	{
+		RCC->APB1ENR |= RCC_APB1ENR_TIM14EN;
 		RCC->APB1RSTR |=   RCC_APB1RSTR_TIM14RST;
 		RCC->APB1RSTR &= ~(RCC_APB1RSTR_TIM14RST);
 	}
