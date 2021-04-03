@@ -55,8 +55,10 @@ int main(void)
 	/* Initialise system clock */
 	clock_setup(false, true, PLL_MULT_X12);
 
+#if defined RGB || defined RGBW
 	/* Initialise the timer */
 	init_timer(TIM3);
+#endif
 
 	/* Turn the LED on */
 	gpio_init(GPIOA, LED_PIN, GPIO_OUTPUT, GPIO_AF0);
@@ -73,9 +75,11 @@ int main(void)
 	/* Delay until LEDs are ready */
 	delay_ms(100);
 
+#if defined RGB || defined RGBW
 	/* Enable DMA and initialise the LEDs */
 	//dma_setup();
 	led_init();
+#endif
 
 #ifdef RGB
 	led_rgb_write_all(&leds, 0, 0, 0);
