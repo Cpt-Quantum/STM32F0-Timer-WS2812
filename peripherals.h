@@ -16,16 +16,6 @@ typedef enum
 
 typedef enum
 {
-	PORTA = 0,
-	PORTB = 1,
-	PORTC = 2,
-	PORTD = 3,
-	PORTE = 4,	//NB: This port doesn't exist on the STM32F030
-	PORTF = 5
-} GPIO_PORT_E;
-
-typedef enum
-{
 	PIN_0  =  0,
 	PIN_1  =  1,
 	PIN_2  =  2,
@@ -85,8 +75,10 @@ typedef enum
 
 extern volatile uint32_t systick;
 
-void gpio_init(GPIO_PORT_E gpio_port, const GPIO_PIN_E io_pin, GPIO_MODER_E gpio_mode,
+void gpio_init(GPIO_TypeDef *gpio_port, const GPIO_PIN_E io_pin, GPIO_MODER_E gpio_mode,
 				GPIO_ALT_MODE_E gpio_af);
+
+void gpio_output(GPIO_TypeDef *gpio_port, const GPIO_PIN_E io_pin, uint8_t value);
 
 void init_timer(TIM_TypeDef *TIMx);
 

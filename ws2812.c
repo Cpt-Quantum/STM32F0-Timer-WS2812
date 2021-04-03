@@ -254,6 +254,10 @@ void led_rgbw_centre_ripple(led_t *leds,
 
 void led_init(void)
 {
+	/* Initialise count to a high enough value such that the output is held */
+	/* low before data transmission starts. */
+	TIM3->CNT = 80;
+
 	/* Setup the timer for capture/compare mode */
 	setup_timer_capture_compare(TIM3, TIM_CHAN_4, DATA_1_PERIOD, 0, 0, false,true);
 }

@@ -6,21 +6,41 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define LED_PIN 0
+/* Set whether the board uses RGB or RGBW leds */
+//#define RGBW
+
+/* Define pin connections */
+#define LED_PIN 4
 
 #define NUM_LEDS 58
+#define MAX_BRIGHTNESS 180
 
 /* Define the LED data structure and point it at the LED data array */
-#define LED_BYTES 4
-uint8_t led_data[NUM_LEDS * LED_BYTES];
-led_t leds = {
-				.data = led_data,
-				.bit_mask = 0B10000000,
-				.arr_pos = 0,
-				.num_leds = NUM_LEDS,
-				.data_format = LED_GRB,
-				.led_bytes = LED_BYTES,
-			 };	
+#ifdef RGB
+	#define LED_BYTES 3
+	uint8_t led_data[NUM_LEDS * LED_BYTES];
+	led_t leds = {
+					.data = led_data,
+					.bit_mask = 0B10000000,
+					.arr_pos = 0,
+					.num_leds = NUM_LEDS,
+					.data_format = LED_GRB,
+					.led_bytes = LED_BYTES,
+				 };
+#endif
+#ifdef RGBW
+	#define LED_BYTES 4
+	uint8_t led_data[NUM_LEDS * LED_BYTES];
+	led_t leds = {
+					.data = led_data,
+					.bit_mask = 0B10000000,
+					.arr_pos = 0,
+					.num_leds = NUM_LEDS,
+					.data_format = LED_RGBW,
+					.led_bytes = LED_BYTES,
+				 };
+
+#endif
 
 #define SYSCLK_FREQ 48000000
 
@@ -46,13 +66,12 @@ int main(void)
 	/* Enable Port B GPIO clock */
 	RCC->AHBENR |= RCC_AHBENR_GPIOBEN;
 
-	/* Set PA4 to output and set high */
-	gpio_init(PORTA, LED_PIN, GPIO_OUTPUT, 0);
-	/* Finally set the pin high */
-	GPIOA->ODR |= (1 << LED_PIN);
+	/* Turn the LED on */
+	gpio_init(GPIOA, LED_PIN, GPIO_OUTPUT, GPIO_AF0);
+	gpio_output(GPIOA, LED_PIN, 0);
 
 	/* Enable PB1 with alternate functionality */
-	gpio_init(PORTB, PIN_1, GPIO_ALT_MODE, GPIO_AF1);
+	gpio_init(GPIOB, PIN_1, GPIO_ALT_MODE, GPIO_AF1);
 
 	/* Setup the SysTick peripheral for 1ms ticks */
 	SysTick_Config(SYSCLK_FREQ/1000);
@@ -63,65 +82,74 @@ int main(void)
 	delay_ms(100);
 
 	/* Enable DMA and initialise the LEDs */
-	dma_setup();
+	//dma_setup();
 	led_init();
 
-//	led_rgbw_write_all(&leds, 0,0, 0,0);
-//	led_show(&leds, TIM3);
+#ifdef RGB
+	led_rgb_write_all(&leds, 0, 0, 0);
+	led_show(&leds, TIM3);
+#endif
+#ifdef RGBW
+	led_rgbw_write_all(&leds, 0, 0, 0,0);
+	led_show(&leds, TIM3);
+	//led_rgbw_write_all(&leds, MAX_BRIGHTNESS, MAX_BRIGHTNESS, MAX_BRIGHTNESS, MAX_BRIGHTNESS);
+#endif
 
 	/* Loop forever */
 	while(1)
 	{
-//	/* Set all LEDs to red and send out the data */
-//	led_rgb_write_all(&leds, 180, 0, 0);
-//	led_show(&leds, TIM3);
-//
-//	/* Wait 1s */
-//	delay_ms(1000);
-//
-//	/* Set all LEDs to green and send out the data */
-//	led_rgb_write_all(&leds, 0, 180, 0);
-//	led_show(&leds, TIM3);
-//
-//	/* Wait 1s */
-//	delay_ms(1000);
-//
-//	/* Set all LEDs to blue and send out the data */
-//	led_rgb_write_all(&leds, 0, 0, 180);
-//	led_show(&leds, TIM3);
-//	
-//	/* Wait 1s */
-//	delay_ms(1000);
-//
-//	/* Rinse, repeat */
-//	led_breathe_effect(&leds, 150, 0, 0, 50, 20);
-//	led_breathe_effect(&leds, 0, 150, 0, 50, 20);
-//	led_breathe_effect(&leds, 0, 0, 150, 50, 20);
+#ifdef RGB
+		/* Set all LEDs to red and send out the data */
+		led_rgb_write_all(&leds, MAX_BRIGHTNESS, 0, 0);
+		led_show(&leds, TIM3);
 
-//	led_pulse(&leds, 20, 0, 0, 240, 0, 0, 100);
-//	led_pulse(&leds, 0, 20, 0, 0, 240, 0, 100);
-//	led_pulse(&leds, 0, 0, 20, 0, 0, 240, 100);
+		/* Wait 1s */
+		delay_ms(1000);
 
-//	led_rgbw_write_all(&leds, 255, 0, 0, 0);
-//	led_show(&leds, TIM3);
-//	delay_ms(1000);
-//
-//	led_rgbw_write_all(&leds, 0, 255, 0, 0);
-//	led_show(&leds, TIM3);
-//	delay_ms(1000);
-//	
-//	led_rgbw_write_all(&leds, 0, 0, 255, 0);
-//	led_show(&leds, TIM3);
-//	delay_ms(1000);
-//
-//	led_rgbw_write_all(&leds, 0, 0, 0, 255);
-//	led_show(&leds, TIM3);
-//	delay_ms(1000);
+		/* Set all LEDs to green and send out the data */
+		led_rgb_write_all(&leds, 0, MAX_BRIGHTNESS, 0);
+		led_show(&leds, TIM3);
 
-	led_rgbw_pulse(&leds, 20, 0, 0, 0, 240, 0, 0, 0, 25);
-	led_rgbw_pulse(&leds, 0, 20, 0, 0, 0, 240, 0, 0, 25);
-	led_rgbw_pulse(&leds, 0, 0, 20, 0, 0, 0, 240, 0, 25);
-	led_rgbw_pulse(&leds, 0, 0, 0, 20, 0, 0, 0, 240, 25);
+		/* Wait 1s */
+		delay_ms(1000);
+
+		/* Set all LEDs to blue and send out the data */
+		led_rgb_write_all(&leds, 0, 0, MAX_BRIGHTNESS);
+		led_show(&leds, TIM3);
+
+		/* Wait 1s */
+		delay_ms(1000);
+#endif
+#ifdef RGBW
+	/* Set all LEDs to red and send out the data */
+		led_rgbw_write_all(&leds, MAX_BRIGHTNESS, 0, 0, 0);
+		led_show(&leds, TIM3);
+
+		/* Wait 1s */
+		delay_ms(1000);
+
+		/* Set all LEDs to green and send out the data */
+		led_rgbw_write_all(&leds, 0, MAX_BRIGHTNESS, 0, 0);
+		led_show(&leds, TIM3);
+
+		/* Wait 1s */
+		delay_ms(1000);
+
+		/* Set all LEDs to blue and send out the data */
+		led_rgbw_write_all(&leds, 0, 0, MAX_BRIGHTNESS, 0);
+		led_show(&leds, TIM3);
+
+		/* Wait 1s */
+		delay_ms(1000);
+
+		/* Set all LEDs to white and send out the data */
+		led_rgbw_write_all(&leds, 0, 0, 0, MAX_BRIGHTNESS);
+		led_show(&leds, TIM3);
+
+		/* Wait 1s */
+		delay_ms(1000);
+
+#endif
 	};
 }
 
@@ -139,6 +167,7 @@ void SysTick_Handler( void ) {
 	systick = systick + 1;
 }
 
+#if defined RGB || defined RGBW
 void DMA1_Channel2_3_IRQHandler(void)
 {
 	/* Half way through buffer interrupt */
@@ -166,3 +195,4 @@ void DMA1_Channel2_3_IRQHandler(void)
 		DMA1->IFCR = DMA_IFCR_CTCIF3;
 	}
 }
+#endif

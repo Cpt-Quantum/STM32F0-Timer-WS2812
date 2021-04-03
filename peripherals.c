@@ -5,70 +5,28 @@
 
 #include "peripherals.h"
 
-void gpio_init(GPIO_PORT_E gpio_port, const GPIO_PIN_E io_pin, GPIO_MODER_E gpio_mode,
+void gpio_init(GPIO_TypeDef *gpio_port, const GPIO_PIN_E io_pin, GPIO_MODER_E gpio_mode,
 				GPIO_ALT_MODE_E gpio_af)
 {
-	if (gpio_port == PORTA)
+	/* Set the GPIO mode for the specified pin */
+	gpio_port->MODER &= ~(GPIO_MODER_MAX << (io_pin * 2));
+	gpio_port->MODER |= (gpio_mode << (io_pin * 2));
+	/* If the specified GPIO mode is for the alternate function, set the alternate function */
+	if (gpio_mode == GPIO_ALT_MODE)
 	{
-		GPIOA->MODER &= ~(GPIO_MODER_MAX << (io_pin * 2));
-		GPIOA->MODER |= (gpio_mode << (io_pin * 2));
-		if (gpio_mode == GPIO_ALT_MODE)
-		{
-			/* First, clear the 4 bit nibble you want to set, then or the */
-			/* register with the value you want to set it to */
-			GPIOA->AFR[io_pin/8] &= ~(GPIO_AF_MAX << ((io_pin & 0x7) * 4));
-			GPIOA->AFR[io_pin/8] |=  (gpio_af     << ((io_pin & 0x7) * 4));
-		}
+		gpio_port->AFR[io_pin/8] &= ~(GPIO_AF_MAX << ((io_pin & 0x07) * 4));
+		gpio_port->AFR[io_pin/8] |= (gpio_af << ((io_pin & 0x07) * 4));
 	}
-	else if (gpio_port == PORTB)
-	{
-		GPIOB->MODER &= ~(GPIO_MODER_MAX << (io_pin * 2));
-		GPIOB->MODER |= (gpio_mode << (io_pin * 2));
-		if (gpio_mode == GPIO_ALT_MODE)
-		{
-			/* First, clear the 4 bit nibble you want to set, then or the */
-			/* register with the value you want to set it to */
-			GPIOB->AFR[io_pin/8] &= ~(GPIO_AF_MAX << ((io_pin & 0x7) * 4));
-			GPIOB->AFR[io_pin/8] |=  (gpio_af     << ((io_pin & 0x7) * 4));
-		}
-	}
-	else if (gpio_port == PORTC)
-	{
-		GPIOC->MODER &= ~(GPIO_MODER_MAX << (io_pin * 2));
-		GPIOC->MODER |= (gpio_mode << (io_pin * 2));
-		if (gpio_mode == GPIO_ALT_MODE)
-		{
-			/* First, clear the 4 bit nibble you want to set, then or the */
-			/* register with the value you want to set it to */
-			GPIOC->AFR[io_pin/8] &= ~(GPIO_AF_MAX << ((io_pin & 0x7) * 4));
-			GPIOC->AFR[io_pin/8] |=  (gpio_af     << ((io_pin & 0x7) * 4));
-		}
-	}
-	else if (gpio_port == PORTD)
-	{
-		GPIOD->MODER &= ~(GPIO_MODER_MAX << (io_pin * 2));
-		GPIOD->MODER |= (gpio_mode << (io_pin * 2));
-		if (gpio_mode == GPIO_ALT_MODE)
-		{
-			/* First, clear the 4 bit nibble you want to set, then or the */
-			/* register with the value you want to set it to */
-			GPIOD->AFR[io_pin/8] &= ~(GPIO_AF_MAX << ((io_pin & 0x7) * 4));
-			GPIOD->AFR[io_pin/8] |=  (gpio_af     << ((io_pin & 0x7) * 4));
-		}
-	}
-	/* NB: There is no port E on the STM32F030 */
-	else if (gpio_port == PORTF)
-	{
-		GPIOF->MODER &= ~(GPIO_MODER_MAX << (io_pin * 2));
-		GPIOF->MODER |= (gpio_mode << (io_pin * 2));
-		if (gpio_mode == GPIO_ALT_MODE)
-		{
-			/* First, clear the 4 bit nibble you want to set, then or the */
-			/* register with the value you want to set it to */
-			GPIOF->AFR[io_pin/8] &= ~(GPIO_AF_MAX << ((io_pin & 0x7) * 4));
-			GPIOF->AFR[io_pin/8] |=  (gpio_af     << ((io_pin & 0x7) * 4));
-		}
-	}
+}
+
+void gpio_output(GPIO_TypeDef *gpio_port, const GPIO_PIN_E gpio_pin, uint8_t value)
+{
+	/* Set the bit in the bit set/reset register */
+	/* The reset bits are the upper 16 bits, and the set bits the lower 16 bits */
+	/* This detail is handled by the shift left on input value logic */
+	/* TODO: & value with 0x01 to ensure the input value is 1 or 0? */
+	/* TODO: Alternatively make a GPIO pin value enum with only 1 or 0 as options */
+	gpio_port->BSRR = ((1 << gpio_pin) << (16 * (!value))); 
 }
 
 void init_timer(TIM_TypeDef *TIMx)
